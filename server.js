@@ -1,49 +1,58 @@
-// bring in environment variables from a .env file
-require("dotenv").config()
-
-// import express and morgan
-const express = require("express")
-const morgan = require("morgan")
-
-
-// create the router object
-const router = express.Router()
-// register it with the application for routes with a certain prefix
-app.use("/prefex", router)
-
-// define a PORT variable from the environment with a default value
-const PORT = process.env.PORT || 4000
-
-// create an application object
+const express = require('express')
 const app = express()
+//const methodOveride = require('method-override');
 
-/////////////////////////////////////
-// ALL YOUR MIDDLEWARE AND ROUTES GO HERE
-app.use(morgan("tiny")) // middleware for logging
-app.use(express.urlencoded({extended: true})) //middleware for parsing urlencoded data
-app.use(express.json()) // middleware for parsing incoming json
-app.use("/static", express.static("static")) // to set a folder for static file serving
-/////////////////////////////////////
-
-// writing pass an anonymous function
-app.get("/", (req, res) =>  {
-    res.send("The Response")
-  })
-  
-  // using a named function
-  function routeHandler(req, res){
-    res.send("the response")
-  }
-  app.get("/endpoint", routeHandler)
+// connect dataset
+const Budget = require('./models/budget.js'); 
 
 
-const middlewareFunction = (req, res, next) => {
-    console.log("This is middleware")
-   }
+// Middleware
+//app.use(methodOveride('_method'))
+app.use(express.urlencoded({ extended: false }));
 
-// using the middleware on all requests
-app.use(middlewareFunction)
-// using the middleware on certain urls
-app.use("/endpoint", middlewareFunction)
-// Server Listener
-app.listen(PORT, () => console.log(`Listening on port ${PORT}`))
+
+// INDEX
+app.get('/budget',(req,res) =>{
+    total = []
+    sum =0
+   for(let i = 0; i < Budget.length; i++) {
+    let amount = parseInt(Budget[i].amount)
+     total.push(amount)
+     sum = sum + total[i]}
+
+    res.render('index.ejs',{   
+        budgets: Budget,
+        sum:sum 
+    })
+
+})
+
+
+// NEW
+app.get('/budget/new',(req,res)=>{
+
+    res.render('new.ejs')
+})
+
+//CREATE
+app.post('/budget', (req,res) =>{
+    console.log(req.body)
+    Budget.push(req.body)
+    res.redirect('/budget')
+})
+
+// SHOW
+app.get('/budget/:id', (req,res) => {
+    // console.log(req.param.id)
+    res.render('show.ejs',{
+        budgets: Budget[req.params.id]
+    })
+})
+;
+
+
+
+// LISTEN
+app.listen(3000, () => {
+    console.log('listening')
+})
